@@ -1,6 +1,6 @@
-// src/routes/register/+page.server.js
+// src/routes/register/+page.server.ts
 import { fail, redirect } from '@sveltejs/kit';
-import { AuthApiError } from '@supabase/supabase-js';
+import { AuthApiError, type Provider } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { message, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
@@ -15,6 +15,10 @@ const registerSchema = z.object({
 	password: z.string().min(8),
 	confirmPassword: z.string().min(8)
 }).refine((data) => data.password === data.confirmPassword, 'Passwords do not match');
+
+const oauthLoginSchema = z.object({
+	provider: z.string(),
+})
 
 export const actions = {
 	register: async (event) => {
@@ -70,6 +74,34 @@ export const actions = {
 		}
 
 		redirect(307, '/');
+	},
+
+	oauthLogin: async (event) => {
+		const { request, locals } = event;
+		const oauthLoginForm = await superValidate(request, zod(oauthLoginSchema));
+
+		if (!oauthLoginForm.valid) {
+			return fail(400, { oauthLoginForm });
+		}
+
+		const provider = oauthLoginForm.data.provider as Provider;
+		const { data, error: err } = await locals.supabase.auth.signInWithOAuth({ 
+			provider,
+			options: {
+			  redirectTo: `http://localhost:5173/auth/callback?next=/`
+			}
+		  })
+		  
+		  if (err) {
+			if (err instanceof AuthApiError && err.status === 400) {
+				return setError(oauthLoginForm, '', err.message, { status: 400 });
+			}
+			return setError(oauthLoginForm, '', 'Server error. Please try again later.', { status: 500 });
+		}
+
+		if (data.url) {
+			redirect(303, data.url);
+		}
 	}
 };
 
@@ -83,7 +115,8 @@ export async function load({ locals: { getSession } }) {
 	// Different schemas, no id required.
 	const registerForm = await superValidate(zod(registerSchema));
 	const loginForm = await superValidate(zod(loginSchema));
+	const oauthLoginForm = await superValidate(zod(oauthLoginSchema));
 
 	// Return them both
-	return { registerForm, loginForm };
+	return { registerForm, loginForm, oauthLoginForm };
 }
