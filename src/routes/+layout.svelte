@@ -1,8 +1,9 @@
 <script lang="ts">
-import '../app.postcss';
+	import '../app.postcss';
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import { onMount } from 'svelte';
 	import { invalidate, goto } from '$app/navigation';
+	import { initializeStores, Toast } from '@skeletonlabs/skeleton';
 
 	export let data;
 
@@ -24,8 +25,11 @@ import '../app.postcss';
 	const handleLogin = () => {
 		goto('/auth/login');
 	};
+
+	initializeStores();
 </script>
 
+<Toast />
 
 <AppShell>
 	<svelte:fragment slot="header">
@@ -40,7 +44,7 @@ import '../app.postcss';
 						<button class="btn btn-sm variant-filled-tertiary">Logout</button>
 					</form>
 				{:else}
-					<button class="btn btn-sm variant-filled-tertiary" on:click={() => goto('auth/login')}
+					<button class="btn btn-sm variant-filled-tertiary" on:click={() => handleLogin()}
 						>Login</button
 					>
 				{/if}

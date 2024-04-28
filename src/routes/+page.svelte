@@ -4,6 +4,11 @@
 	import Submission from '$lib/components/Submission.svelte';
 	import Wager from '$lib/components/Wager.svelte';
 	import Placeholder from '$lib/components/Placeholder.svelte';
+	import { DateTime } from 'luxon';
+	import { POSTGREST_UNIQUENESS_VIOLATION } from '$lib/constants.js';
+	import { getToastStore, type ToastSettings } from '@skeletonlabs/skeleton';
+
+	const toastStore = getToastStore();
 
 	type inputModeType = 'wager' | 'bid' | 'none';
 	let inputMode: inputModeType = 'none';
@@ -14,37 +19,61 @@
 	$: ({ supabase, session } = data);
 
 	const handleWager = () => {
-		inputMode = 'wager';
+		if (inputMode === 'wager') {
+			inputMode = 'none';
+		} else {
+			inputMode = 'wager';
+		}
 	};
 
 	const handleBid = () => {
-		inputMode = 'bid';
+		if (inputMode === 'bid') {
+			inputMode = 'none';
+		} else {
+			inputMode = 'bid';
+		}
 	};
+
+	function launchToast(submission: inputModeType) {					
+		const t: ToastSettings = {
+			message: 'You have already submitted a wager for today',
+		};
+		toastStore.trigger(t);
+	}
 
 	async function handleSubmit(event: any) {
 		const userInput = event.detail;
 		const uuid = data.userInfo?.id;
+		const ts = DateTime.utc();
 		if (inputMode === 'wager') {
-			const { data, error } = await supabase.from('wagers').upsert([
+			const { data, error } = await supabase.from('wagers').insert([
 				{
 					id: uuid,
 					message_prediction: userInput,
-					created_at: new Date(),
+					created_at: ts,
+					creation_date: ts.toISODate()
 				},
 			]);
 			if (error) {
 				console.error('Error submitting wager:', error);
+				if (error.code === POSTGREST_UNIQUENESS_VIOLATION) {
+					launchToast(inputMode);
+				}
 			}
 		} else if (inputMode === 'bid') {
 			const { data, error } = await supabase.from('bids').insert([
 				{
 					id: uuid,
 					message: userInput,
-					created_at: new Date(),
+					created_at: ts,
+					creation_date: ts.toISODate()
 				},
 			]);
 			if (error) {
 				console.error('Error submitting bid:', error);
+				if (error.code === POSTGREST_UNIQUENESS_VIOLATION) {
+					launchToast(inputMode);
+				}
 			}
 		}
 		inputMode = 'none';
