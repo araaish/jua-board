@@ -4,7 +4,8 @@
 	import { onMount } from 'svelte';
 	import { invalidate, goto } from '$app/navigation';
 	import { initializeStores, Toast } from '@skeletonlabs/skeleton';
-
+	import Footer from '../lib/components/Footer.svelte';
+	
 	export let data;
 
 	let { supabase, session } = data;
@@ -52,5 +53,5 @@
 		</AppBar>
 	</svelte:fragment>
 	<slot />
-	<svelte:fragment slot="pageFooter">marlinspike dev</svelte:fragment>
+	<svelte:fragment slot="pageFooter"><Footer/></svelte:fragment>
 </AppShell>
