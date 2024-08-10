@@ -4,6 +4,7 @@ import { AuthApiError, type Provider } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { message, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import { BASE_URL } from '$lib/constants.js';
 
 const loginSchema = z.object({
 	email: z.string().email(),
@@ -88,7 +89,7 @@ export const actions = {
 		const { data, error: err } = await locals.supabase.auth.signInWithOAuth({ 
 			provider,
 			options: {
-			  redirectTo: `http://localhost:5173/auth/callback?next=/`
+			  redirectTo: BASE_URL + `auth/callback?next=/`
 			}
 		  })
 		  

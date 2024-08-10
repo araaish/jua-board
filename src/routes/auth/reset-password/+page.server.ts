@@ -4,6 +4,7 @@ import { AuthApiError } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { message, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
+import { BASE_URL } from '$lib/constants.js';
 
 const resetSchema = z.object({
 	email: z.string().email()
@@ -19,7 +20,7 @@ export const actions = {
 
 		const email = resetForm.data.email as string;
 		const { data, error: err } = await locals.supabase.auth.resetPasswordForEmail(email, {
-			redirectTo: 'http://localhost:5173/auth/change-password'
+			redirectTo: BASE_URL + 'auth/change-password'
 		});
 
 		if (err) {
