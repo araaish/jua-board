@@ -4,7 +4,7 @@
 			Jua Board is a daily message board based on network effects and speculation. Any verified user
 			can submit one <i>bid</i> for the next day's message. A verified user can also submit one
 			<i>wager</i> for the next day's message. A wager is a prediction of what the next day's message
-			will be. Messages are limited to 40 characters.
+			will be. Messages are limited to 140 characters.
 		</p>
 	</div>
 	<div class="card p-4 m-5">
